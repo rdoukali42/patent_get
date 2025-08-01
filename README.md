@@ -1,6 +1,16 @@
-## Getting Started
+# EPO URL Downloader - DigitalOcean Deployment
 
-We provide a sample app using Python that you can deploy on App Platform. These steps will get this sample application running for you using App Platform.
+This application scrapes the European Patent Office (EPO) publication server to extract ZIP file URLs for specified year and week ranges. The extracted URLs are saved to text files in the server's local storage.
+
+## Features
+
+- 🚀 Ultra-fast EPO ZIP URL extraction
+- 📅 Configurable year and week ranges
+- 💾 Local file storage on DigitalOcean
+- 🌐 Web interface for easy operation
+- 📁 Download generated URL files
+
+## Getting Started
 
 **Note: Following these steps may result in charges for the use of DigitalOcean services.**
 
@@ -10,41 +20,97 @@ We provide a sample app using Python that you can deploy on App Platform. These 
 
 ## Deploying the App
 
-Click this button to deploy the app to the DigitalOcean App Platform. If you are not logged in, you will be prompted to log in with your DigitalOcean account.
+### Option 1: Using DigitalOcean App Platform (Recommended)
 
-[![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/digitalocean/sample-python/tree/main)
+1. Fork this repository to your GitHub account
+2. Go to https://cloud.digitalocean.com/apps
+3. Click **Create App**
+4. Select **GitHub** as your source
+5. Choose your forked repository
+6. Select the `main` branch
+7. App Platform will automatically detect the Python application
+8. Configure your app:
+   - **App Name**: epo-url-downloader (or your preferred name)
+   - **Region**: Choose the closest region to you
+   - **Plan**: Basic plan is sufficient for most use cases
+9. Click **Create Resources**
+10. Wait for the build to complete (this may take several minutes)
+11. Once deployed, click the **Live App** link to access your application
 
-Using this button disables the ability to automatically re-deploy your app when pushing to a branch or tag in your repository as you are using this repo directly.
+### Option 2: Manual Deployment
 
-If you want to automatically re-deploy your app, [fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) the GitHub repository to your account so that you have a copy of it stored to the cloud. Click the **Fork** button in the GitHub repository and follow the on-screen instructions.
+If you want to customize the deployment:
 
-After forking the repo, you should now be viewing this README in your own GitHub org (e.g. `https://github.com/<your-org>/sample-python`). To deploy the new repo, visit https://cloud.digitalocean.com/apps and click **Create App**. Then, click **GitHub**, select the repository you created and select the `main` branch. App Platform will inspect the code, automatically detect the kind of component to create, and use the correct buildpack to create and deploy a container.
+1. Fork this repository
+2. Update the `.do/app.yaml` file with your repository details
+3. Follow the App Platform deployment process
 
-After clicking the **Deploy to DigitalOcean** button or completing the instructions above to fork the repo, follow these steps:
+## Using the Application
 
-1. Configure the app such as specifying HTTP routes, environment variables or adding a database.
-1. Provide a name for your app and select which region you want to deploy your app to and click **Next**. The closest region to you should be selected by default. All App Platform apps are routed through a global CDN. So this will not affect your app performance, unless it needs to talk to external services.
-1. On the following screen, leave all the fields as they are and click **Next**.
-1. Confirm your **Plan** settings and how many containers you want to launch and click **Launch Basic/Pro App**.
-1. You should see a "Building..." progress indicator. You can click **View Logs** to see more details of the build.
-1. It can take a few minutes for the build to finish, but you can follow the progress in the **Deployments** tab.
-1. Once the build completes successfully, click the **Live App** link in the header and you should see your running application in a new tab, displaying the home page.
+1. Access your deployed application URL
+2. Set your desired parameters:
+   - **Year Start**: Starting year (1979-2025)
+   - **Year End**: Ending year (1979-2025)
+   - **Week Start**: Starting week (1-52)
+   - **Week End**: Ending week (1-52)
+3. Click **Start Download**
+4. Wait for the process to complete (this may take a while depending on the range)
+5. Download the generated text files containing the URLs
 
-### Making Changes to Your App
+## File Storage
 
-If you followed the steps to fork the repo and used your own copy when deploying the app, you can push changes to your fork and see App Platform automatically re-deploy the update to your app. During these automatic deployments, your application will never pause or stop serving request because App Platform offers zero-downtime deployments.
+- All generated files are stored in `/tmp/epo_patent/` on the server
+- Files are named using the format: `{year}_{week}.txt`
+- Each file contains one URL per line
+- Files can be downloaded through the web interface
 
-Here's an example code change you can make for this app:
+## Dependencies
 
-1. Edit `server.py` and replace "Hello!" on line 12 with a different greeting
-1. Commit the change to the `main` branch. Normally it's a better practice to create a new branch for your change and then merge that branch to `main` after review, but for this demo you can commit to the `main` branch directly.
-1. Visit https://cloud.digitalocean.com/apps and navigate to your sample app.
-1. You should see a "Building..." progress indicator, just like when you first created the app.
-1. Once the build completes successfully, click the **Live App** link in the header and you should see your updated application running. You may need to force refresh the page in your browser (e.g. using **Shift+Reload**).
+- Python 3.9+
+- Selenium WebDriver
+- Chrome/Chromium browser
+- Flask web framework
+- Gunicorn WSGI server
 
-### Learn More
+## Environment Variables
 
-You can learn more about the App Platform and how to manage and update your application at https://www.digitalocean.com/docs/app-platform/.
+- `PORT`: Server port (default: 8080)
+- `PYTHONUNBUFFERED`: Set to "1" for proper logging
+
+## Technical Details
+
+The application uses:
+- **Selenium WebDriver** with headless Chrome for web scraping
+- **Flask** for the web interface
+- **Gunicorn** as the WSGI server
+- **DigitalOcean App Platform** for hosting
+
+## Limitations
+
+- Processing large date ranges may take considerable time
+- Server storage is temporary and files may be cleared on restart
+- Chrome WebDriver requires adequate memory allocation
+
+## Making Changes
+
+If you forked the repository:
+
+1. Make your changes to the code
+2. Commit and push to your `main` branch
+3. App Platform will automatically redeploy your application
+4. Monitor the build process in the DigitalOcean dashboard
+
+## Learn More
+
+- [DigitalOcean App Platform Documentation](https://www.digitalocean.com/docs/app-platform/)
+- [EPO Publication Server](https://data.epo.org/publication-server/)
+
+## Support
+
+For issues related to:
+- **DigitalOcean deployment**: Check the App Platform documentation
+- **Application functionality**: Review the code and logs
+- **EPO website changes**: The scraping logic may need updates
 
 ## Deleting the App
 

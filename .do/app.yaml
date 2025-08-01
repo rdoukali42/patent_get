@@ -1,8 +1,22 @@
-name: sample-python
+name: epo-url-downloader
 services:
-- environment_slug: python
+- name: web
+  source_dir: /
   github:
+    repo: your-username/epo_git
     branch: main
     deploy_on_push: true
-    repo: digitalocean/sample-python
-  name: sample-python
+  run_command: gunicorn server:app --bind 0.0.0.0:$PORT --workers 1 --timeout 0
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 8080
+  routes:
+  - path: /
+  health_check:
+    http_path: /
+  envs:
+  - key: PYTHONUNBUFFERED
+    value: "1"
+  - key: PORT
+    value: "8080"

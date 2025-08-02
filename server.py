@@ -19,7 +19,7 @@ class FastEPODownloader:
         self.year = str(year)
         self.week = str(week)
         # Use local storage directory for DigitalOcean
-        self.download_folder = '/tmp/epo_patent'
+        self.download_folder = '/app/epo_patent'
         os.makedirs(self.download_folder, exist_ok=True)
         self.driver = None
         self.total_downloads = 0
@@ -217,24 +217,16 @@ def index():
 <body>
     <div class="container">
         <h1>🚀 EPO URL Downloader</h1>
-        <p>Extract ZIP file URLs from EPO patent database for specified year and week ranges.</p>
+        <p>Extract ZIP file URLs from EPO patent database for a specific year and week.</p>
         
         <form id="downloadForm">
             <div class="form-group">
-                <label>Year Start:</label>
+                <label>Year:</label>
                 <input type="number" id="yearStart" value="2024" min="1979" max="2025">
             </div>
             <div class="form-group">
-                <label>Year End:</label>
-                <input type="number" id="yearEnd" value="2025" min="1979" max="2025">
-            </div>
-            <div class="form-group">
-                <label>Week Start:</label>
+                <label>Week:</label>
                 <input type="number" id="weekStart" value="1" min="1" max="52">
-            </div>
-            <div class="form-group">
-                <label>Week End:</label>
-                <input type="number" id="weekEnd" value="52" min="1" max="52">
             </div>
             <button type="submit">Start Download</button>
         </form>
@@ -256,9 +248,7 @@ def index():
             e.preventDefault();
             
             const yearStart = document.getElementById('yearStart').value;
-            const yearEnd = document.getElementById('yearEnd').value;
             const weekStart = document.getElementById('weekStart').value;
-            const weekEnd = document.getElementById('weekEnd').value;
             
             document.getElementById('loading').style.display = 'block';
             document.getElementById('result').style.display = 'none';
@@ -269,9 +259,7 @@ def index():
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     year_start: parseInt(yearStart),
-                    year_end: parseInt(yearEnd),
-                    week_start: parseInt(weekStart),
-                    week_end: parseInt(weekEnd)
+                    week_start: parseInt(weekStart)
                 })
             })
             .then(response => response.json())
@@ -306,40 +294,31 @@ def index():
 def download():
     data = request.json
     year_start = data.get('year_start', 2024)
-    year_end = data.get('year_end', 2025)
     week_start = data.get('week_start', 1)
-    week_end = data.get('week_end', 52)
     
     downloader = FastEPODownloader(year=year_start, week=week_start)
     total_files = 0
     generated_files = []
     
     try:
-        for year in range(year_start, year_end):
-            for week in range(week_start, week_end + 1):
-                print(f"\n📅 Running for Year: {year}, Week: {week:02d}")
-                downloader.setYearWeek(year, week)
-                
-                try:
-                    result = downloader.run()
-                    total_files += result
-                    
-                    # Check if file was created
-                    filename = f"{year}_{week}.txt"
-                    filepath = os.path.join(downloader.download_folder, filename)
-                    if os.path.exists(filepath):
-                        generated_files.append(filename)
-                        
-                except Exception as e:
-                    print(f"❌ Error in Year {year}, Week {week}: {e}")
-        
+        print(f"\n📅 Running for Year: {year_start}, Week: {week_start:02d}")
+        downloader.setYearWeek(year_start, week_start)
+        try:
+            result = downloader.run()
+            total_files += result
+            # Check if file was created
+            filename = f"{year_start}_{week_start}.txt"
+            filepath = os.path.join(downloader.download_folder, filename)
+            if os.path.exists(filepath):
+                generated_files.append(filename)
+        except Exception as e:
+            print(f"❌ Error in Year {year_start}, Week {week_start}: {e}")
         return jsonify({
             'status': 'completed',
             'total_files': total_files,
             'files_generated': len(generated_files),
             'files': generated_files
         })
-        
     except Exception as e:
         return jsonify({
             'status': 'error',
@@ -349,18 +328,25 @@ def download():
 @app.route('/download_file/<filename>')
 def download_file(filename):
     from flask import send_from_directory
-    return send_from_directory('/tmp/epo_patent', filename, as_attachment=True)
+    return send_from_directory('/app/epo_patent', filename, as_attachment=True)
 
 @app.route('/files')
 def list_files():
     try:
-        files = os.listdir('/tmp/epo_patent')
+        files = os.listdir('/app/epo_patent')
         files = [f for f in files if f.endswith('.txt')]
         return jsonify({'files': files})
     except:
         return jsonify({'files': []})
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 8088))
+    import socket
+    def get_free_port():
+        s = socket.socket()
+        s.bind(('', 0))
+        port = s.getsockname()[1]
+        s.close()
+        return port
+    port = int(os.getenv('PORT', get_free_port()))
     print(f'🚀 EPO Downloader Server starting on port {port}')
     app.run(host='0.0.0.0', port=port, debug=False)

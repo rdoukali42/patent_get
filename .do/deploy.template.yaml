@@ -1,8 +1,14 @@
 spec:
-  name: sample-python
+  name: epo-url-downloader
   services:
-  - environment_slug: python
+  - name: epo-url-downloader
     git:
       branch: main
       repo_clone_url: https://github.com/rdoukali42/patent_get.git
-    name: sample-python
+    dockerfile_path: Dockerfile
+    http_port: "${PORT}"
+    envs:
+      - key: PORT
+        value: "0"
+      - key: PYTHONUNBUFFERED
+        value: "1"
